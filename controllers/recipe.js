@@ -1,32 +1,72 @@
 const db = require('../models');
-const IngredientController = require('../controllers/ingredient');
+const IngredientController = require('./ingredient');
+const UserController = require('./user');
+const Sequelize = require('sequelize');
+const Op = Sequelize.Op;
 
 async function getRecipeByPublicId(public_id) {
     try {
-        return await db.recipes.findOne({ where: { public_id: public_id } });
+        return await db.recipes.findOne({
+            where: {
+                public_id: public_id
+            }
+        });
     } catch (err) {
         throw err;
     }
 }
 
-async function getRecipeByUser(user_id, offset = 0, limit = 10) {
-    try {
-        return await db.recipes.findAll({ where: { user_id: user_id }, limit: limit, offset: offset });
-    } catch (err) {
-        throw err;
-    }
-}
+// async function getRecipeByUser(user_id, offset = 0, limit = 10) {
+//     try {
+//         return await db.recipes.findAll({
+//             where: {
+//                 user_id: user_id
+//             },
+//             limit: limit,
+//             offset: offset
+//         });
+//     } catch (err) {
+//         throw err;
+//     }
+// }
 
-async function getAllRecipes(offset = 0, limit = 10) {
-    try {
-        return await db.recipes.findAll({ limit: limit, offset: offset });
-    } catch (err) {
-        throw err;
-    }
-}
+
+// async function getRecipesforUser(user_id, offset = 0, limit = 10) {
+//     try {
+//         return await db.recipes.findAll({
+//             where: {
+//                 [Op.or]: [
+//                     { user_id: user_id },
+//                     { type: 'Public' }
+//                 ]
+//             },
+//             limit: limit,
+//             offset: offset
+//         });
+//     } catch (err) {
+//         throw err;
+//     }
+// }
+
+// async function getAllRecipes(offset = 0, limit = 10) {
+//     try {
+//         return await db.recipes.findAll({
+//             where: {
+//                 type: 'Public'
+//             },
+//             limit: limit,
+//             offset: offset
+//         });
+//     } catch (err) {
+//         throw err;
+//     }
+// }
 
 async function createRecipe(user, recipe) {
     try {
+        if (!recipe.name || recipe.name .length < 1){
+            throw new Error('Please enter a name');
+        }
         return await db.sequelize.transaction(async (t) => {
 
             let ingredientPromises = recipe.ingredients.map(async (ingredient) => {
@@ -101,10 +141,63 @@ async function updateRecipe(user, recipe, newRecipe) {
     }
 }
 
+/**
+ * 
+ * @param {*} options search options 
+ * {
+ *     searchString: 'abc',
+ *     userIdentifier: 'hdsihfknd93hiuw9erxnkcl'
+ * }
+ * @param {*} offset 
+ * @param {*} limit 
+ */
+async function searchRecipes(options, offset = 0, limit = 10) {
+    console.log(options);
+    try {
+        let query = {
+            where: {
+                type: 'Public'
+            },
+            limit: limit,
+            offset: offset
+        };
+        if (options.searchString) {
+            query.where[Op.or]= 
+            [
+                    {
+                        name: {
+                            [Op.like]: `%${options.searchString}%`
+                        }
+                    },
+                    {
+                        description: {
+                            [Op.like]: `%${options.searchString}%`
+                        }
+                    }
+            ];
+        }
+
+        if (options.userIdentifier) {
+            let user = await UserController.getUserByPublicId(options.userIdentifier);
+            console.log(user);
+            if(!user) {
+                return [];
+            }
+            query.where.user_id = user.id;
+        }
+        console.log(query);
+        return await db.recipes.findAll(query);
+    } catch (err) {
+        throw err;
+    }
+}
+
 module.exports = {
-    getAllRecipes,
+    // getAllRecipes,
     getRecipeByPublicId,
-    getRecipeByUser,
+    // getRecipeByUser,
     createRecipe,
-    updateRecipe
+    updateRecipe,
+    // getRecipesforUser,
+    searchRecipes
 }

@@ -1,16 +1,12 @@
 const Sequelize = require('sequelize');
-const sequelize = new Sequelize({
-    database: process.env.db_name || 'recipebook',
-    username: process.env.db_username || 'root',
-    password: process.env.db_password || 'password',
-    host: process.env.db_host || 'localhost',
-    port: 3306,
-    dialect: 'mysql',
-    operatorsAliases: false,
-    define: {
-        timestamps: false
-    }
-});
+const config = require('../config/config');
+let db_config = config.development;
+
+if (process.env.NODE_ENV == 'test') {
+    db_config = config.test;
+}
+
+const sequelize = new Sequelize(db_config);
 
 let db = {
     sequelize: sequelize,

@@ -14,7 +14,8 @@ async function authenticate(req, res, next) {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             token = req.headers.authorization.split(' ')[1];
         } else {
-            throw 'invalid user';
+            res.status(401).send('Unauthorised User');
+            return;
         }
 
         const user_id = jwt.verifyJWT(token).id;
@@ -22,7 +23,8 @@ async function authenticate(req, res, next) {
         const user = await UserController.getUserById(user_id);
 
         if(!user) {
-            next(createError(401, 'Unauthorized User'));    
+            res.status(401).send('Unauthorised User');
+            return;
         }
 
         req.user = user;
@@ -30,7 +32,7 @@ async function authenticate(req, res, next) {
 
         next();
     } catch (err) {
-        next(createError(401, 'Unauthorized User'));
+        res.status(500).send('Internal Server Error');
     }
 }
 
