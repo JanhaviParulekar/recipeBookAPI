@@ -4,6 +4,12 @@ const UserController = require('./user');
 const Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 
+/**
+ * Get a recipe by public Id
+ * @param {*} public_id
+ * 
+ * @returns 
+ */
 async function getRecipeByPublicId(public_id) {
     try {
         return await db.recipes.findOne({
@@ -16,57 +22,15 @@ async function getRecipeByPublicId(public_id) {
     }
 }
 
-// async function getRecipeByUser(user_id, offset = 0, limit = 10) {
-//     try {
-//         return await db.recipes.findAll({
-//             where: {
-//                 user_id: user_id
-//             },
-//             limit: limit,
-//             offset: offset
-//         });
-//     } catch (err) {
-//         throw err;
-//     }
-// }
-
-
-// async function getRecipesforUser(user_id, offset = 0, limit = 10) {
-//     try {
-//         return await db.recipes.findAll({
-//             where: {
-//                 [Op.or]: [
-//                     { user_id: user_id },
-//                     { type: 'Public' }
-//                 ]
-//             },
-//             limit: limit,
-//             offset: offset
-//         });
-//     } catch (err) {
-//         throw err;
-//     }
-// }
-
-// async function getAllRecipes(offset = 0, limit = 10) {
-//     try {
-//         return await db.recipes.findAll({
-//             where: {
-//                 type: 'Public'
-//             },
-//             limit: limit,
-//             offset: offset
-//         });
-//     } catch (err) {
-//         throw err;
-//     }
-// }
-
+/**
+ * 
+ * @param {*} user 
+ * @param {*} recipe 
+ * 
+ * @returns
+ */
 async function createRecipe(user, recipe) {
     try {
-        if (!recipe.name || recipe.name .length < 1){
-            throw new Error('Please enter a name');
-        }
         return await db.sequelize.transaction(async (t) => {
 
             let ingredientPromises = recipe.ingredients.map(async (ingredient) => {
@@ -100,6 +64,14 @@ async function createRecipe(user, recipe) {
     }
 }
 
+/**
+ * 
+ * @param {*} user 
+ * @param {*} recipe 
+ * @param {*} newRecipe 
+ * 
+ * @returns
+ */
 async function updateRecipe(user, recipe, newRecipe) {
     try {
         return await db.sequelize.transaction(async (t) => {
@@ -150,9 +122,10 @@ async function updateRecipe(user, recipe, newRecipe) {
  * }
  * @param {*} offset 
  * @param {*} limit 
+ * 
+ * @returns 
  */
 async function searchRecipes(options, offset = 0, limit = 10) {
-    console.log(options);
     try {
         let query = {
             where: {
@@ -179,25 +152,22 @@ async function searchRecipes(options, offset = 0, limit = 10) {
 
         if (options.userIdentifier) {
             let user = await UserController.getUserByPublicId(options.userIdentifier);
-            console.log(user);
             if(!user) {
                 return [];
             }
             query.where.user_id = user.id;
         }
-        console.log(query);
+
         return await db.recipes.findAll(query);
+
     } catch (err) {
         throw err;
     }
 }
 
 module.exports = {
-    // getAllRecipes,
     getRecipeByPublicId,
-    // getRecipeByUser,
     createRecipe,
     updateRecipe,
-    // getRecipesforUser,
     searchRecipes
 }

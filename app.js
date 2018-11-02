@@ -1,7 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const logger = require('morgan');
-const createError = require('http-errors');
 const db = require('./models').sequelize;
 const indexRouter = require('./routes/index');
 const userRouter = require('./routes/user');
@@ -27,12 +26,12 @@ db.authenticate()
   });
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+app.use(function (req, res, next) {
+  res.status(404).send('Not Found');
 });
 
 // error handler
-app.use(function(err, req, res, next) {
+app.use(function (err, req, res, next) {
   // set locals, only providing error in development
   console.log(err);
   res.locals.message = err.message;
@@ -42,7 +41,7 @@ app.use(function(err, req, res, next) {
   res.status(500).send(err.message);
 });
 
-app.listen(port, () =>{
+app.listen(port, () => {
   console.log(`Started on port ${port}`);
 });
 

@@ -32,7 +32,6 @@ module.exports = function (sequelize, Sequelize) {
         }, {
             hooks: {
                 beforeValidate: (user) => {
-                    console.log(user);
                     if (!user.public_id) {
                         user.public_id = uuid();
                     }

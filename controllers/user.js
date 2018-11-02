@@ -13,7 +13,7 @@ async function validateUserPassword(email, password) {
     try {
         const user = await getUserByEmail(email);
         if(!user) {
-            return ;
+            return null;
         }
         if(await hashService.validateHash(password, user.password)) {
             return user;

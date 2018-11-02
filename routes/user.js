@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const createError = require('http-errors');
 const UserController = require('../controllers/user');
 const jwt = require('../services/jwt');
 

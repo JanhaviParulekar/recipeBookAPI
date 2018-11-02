@@ -1,6 +1,5 @@
 const jwt = require('../services/jwt');
 const UserController = require('../controllers/user');
-const createError = require('http-errors')
 
 /**
  * 
@@ -17,7 +16,6 @@ async function authenticate(req, res, next) {
             res.status(401).send('Unauthorised User');
             return;
         }
-
         const user_id = jwt.verifyJWT(token).id;
 
         const user = await UserController.getUserById(user_id);
@@ -32,6 +30,8 @@ async function authenticate(req, res, next) {
 
         next();
     } catch (err) {
+        console.log("here");
+        console.log(err);
         res.status(500).send('Internal Server Error');
     }
 }
@@ -54,7 +54,7 @@ async function getUser(req, res, next) {
 
         next();
     } catch (err) {
-        next(createError(404, 'Bad Request'));
+        res.status(400).send('Bad Request');
     }
 }
 

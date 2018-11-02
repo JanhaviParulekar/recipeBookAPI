@@ -47,16 +47,19 @@ router.get('/search', auth.authenticate, async (req, res, next) => {
 
 router.post('/', auth.authenticate, async (req, res, next) => {
     try {
-        let recipe = await RecipeController.createRecipe(req.user, req.body.recipe);
-        if(req.body.recipe.name.length<1){
+
+        if (!req.body.recipe || !req.body.recipe.name || req.body.recipe.name.length < 1) {
             res.status(400).send('Bad data');
             return;
         }
+
+        let recipe = await RecipeController.createRecipe(req.user, req.body.recipe);
+
         res.json({
             recipe_identifier: recipe.public_id
         });
     } catch (err) {
-        next(res.status(400).send('Bad data'));
+        next(res.status(500).send('Internal Server Error'));
     }
 });
 
