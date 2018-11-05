@@ -2,8 +2,8 @@ const { execSync } = require('child_process');
 const path = require('path');
 const UserController = require('../controllers/user');
 const RecipeController = require('../controllers/recipe');
+const db = require('../models');
 let testUser;
-let token;
 const jwt = require('../services/jwt');
 
 function resetDB() {
@@ -21,7 +21,10 @@ function resetDB() {
         const basePath = path.normalize('node_modules/.bin/sequelize');
 
         commands.forEach(command => {
-            execSync(`${basePath} ${command}`, options);
+            try {
+                execSync(`${basePath} ${command}`, options);
+            } catch (e) {
+            }
         })
     } catch (e) {
         throw e;
@@ -38,6 +41,28 @@ async function createUser(email = 'test@example.com', password = 'password', nam
     }
 }
 
+async function truncateAllTables() {
+    try {
+        const tables = [
+            'recipe_ingredients',
+            'ingredients',
+            'recipes',
+            'users',
+        ];
+        
+        let query = 'SET FOREIGN_KEY_CHECKS=0; ';
+
+        tables.forEach(tableName => {
+            query += `TRUNCATE TABLE ${tableName}; `;
+        });
+
+        query += 'SET FOREIGN_KEY_CHECKS=1;'
+        return await db.sequelize.query(query);
+    } catch (e) {
+        throw e;
+    }
+}
+
 let recipeObj = {
     "name": "Test Recipe 2",
     "description": "This is a test recipe",
@@ -51,20 +76,20 @@ let recipeObj = {
     "type": "Public"
 }
 
-async function createRecipe(recipe = recipeObj) {
+async function createRecipe(user = testUser, recipe = recipeObj) {
     try {
-        return await RecipeController.createRecipe(testUser, recipe);
+        return await RecipeController.createRecipe(user, recipe);
     } catch (err) {
         throw err;
     }
 }
 
-function getTestUser() {
-    return testUser;
+function getTokenForUser(user) {
+    return jwt.signJWT({ id: user.id });
 }
 
-function getToken() {
-    return token;
+function getTestUser() {
+    return testUser;
 }
 
 module.exports = {
@@ -72,5 +97,6 @@ module.exports = {
     createUser,
     createRecipe,
     getTestUser,
-    getToken
+    getTokenForUser,
+    truncateAllTables
 }

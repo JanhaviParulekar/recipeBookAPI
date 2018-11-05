@@ -12,12 +12,14 @@ async function getUserByEmail(email) {
 async function validateUserPassword(email, password) {
     try {
         const user = await getUserByEmail(email);
-        if(!user) {
-            return null;
+        if(!user || !password) {
+            throw new Error('UNAUTHORIZED');
         }
         if(await hashService.validateHash(password, user.password)) {
             return user;
-        };
+        } else {
+            throw new Error('UNAUTHORIZED');
+        }
     } catch (err) {
         throw err;
     }
@@ -33,7 +35,7 @@ async function getUserByPublicId(public_id) {
 
 async function getUserById(id) {
     try {
-        return await db.users.findById(id);
+        return await db.users.findByPk(id);
     } catch (err) {
         throw err;
     }
@@ -42,7 +44,7 @@ async function getUserById(id) {
 async function createUser(email, password, name) {
     try {
         if (!password || password.length < 6){
-            throw new Error('Please enter a password having minimum length 6');
+            throw new Error('BAD REQUEST');
         }
         let pwd = await hashService.generateHash(password);
         return await db.users.create({

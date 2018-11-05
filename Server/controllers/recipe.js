@@ -22,6 +22,17 @@ async function getRecipeByPublicId(public_id) {
     }
 }
 
+async function getMyRecipes(user) {
+    try {
+        return await db.recipes.findAll({
+            where: {
+                user_id: user.id
+            }
+        });
+    } catch (err) {
+        throw err;
+    }
+}
 /**
  * 
  * @param {*} user 
@@ -44,19 +55,20 @@ async function createRecipe(user, recipe) {
                 } catch (er) {
                     throw er;
                 }
-            })
+            });
 
             let ingredientList = await Promise.all(ingredientPromises);
-            return await db.recipes.create({
-                name: recipe.name,
-                description: recipe.description,
-                user_id: user.id,
-                type: recipe.type,
-                recipe_ingredients: ingredientList
-            }, {
+            return await db.recipes.create(
+                {
+                    name: recipe.name,
+                    description: recipe.description,
+                    user_id: user.id,
+                    type: recipe.type,
+                    recipe_ingredients: ingredientList
+                }, {
                     transaction: t,
                     include: ['recipe_ingredients']
-                })
+                });
         });
 
     } catch (err) {
@@ -92,8 +104,8 @@ async function updateRecipe(user, recipe, newRecipe) {
                         quantity: ingredient.quantity,
                         unit: ingredient.unit
                     }
-                } catch (er) {
-                    throw er;
+                } catch (err) {
+                    throw err;
                 }
             })
             let ingredientList = await Promise.all(ingredientPromises);
@@ -108,8 +120,8 @@ async function updateRecipe(user, recipe, newRecipe) {
             await db.recipeIngredients.bulkCreate(ingredientList, { transaction: t })
         });
 
-    } catch (e) {
-        throw e;
+    } catch (err) {
+        throw err;
     }
 }
 
@@ -135,8 +147,8 @@ async function searchRecipes(options, offset = 0, limit = 10) {
             offset: offset
         };
         if (options.searchString) {
-            query.where[Op.or]= 
-            [
+            query.where[Op.or] =
+                [
                     {
                         name: {
                             [Op.like]: `%${options.searchString}%`
@@ -147,12 +159,12 @@ async function searchRecipes(options, offset = 0, limit = 10) {
                             [Op.like]: `%${options.searchString}%`
                         }
                     }
-            ];
+                ];
         }
 
         if (options.userIdentifier) {
             let user = await UserController.getUserByPublicId(options.userIdentifier);
-            if(!user) {
+            if (!user) {
                 return [];
             }
             query.where.user_id = user.id;
@@ -169,5 +181,6 @@ module.exports = {
     getRecipeByPublicId,
     createRecipe,
     updateRecipe,
-    searchRecipes
+    searchRecipes,
+    getMyRecipes
 }

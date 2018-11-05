@@ -13,26 +13,21 @@ async function authenticate(req, res, next) {
         if (req.headers.authorization && req.headers.authorization.split(' ')[0] === 'Bearer') {
             token = req.headers.authorization.split(' ')[1];
         } else {
-            res.status(401).send('Unauthorised User');
-            return;
+            throw new Error('UNAUTHORIZED');
         }
         const user_id = jwt.verifyJWT(token).id;
 
         const user = await UserController.getUserById(user_id);
 
         if(!user) {
-            res.status(401).send('Unauthorised User');
-            return;
+            throw new Error('UNAUTHORIZED');
         }
 
         req.user = user;
         req.token = token;
-
         next();
     } catch (err) {
-        console.log("here");
-        console.log(err);
-        res.status(500).send('Internal Server Error');
+        next(err);
     }
 }
 
@@ -54,7 +49,7 @@ async function getUser(req, res, next) {
 
         next();
     } catch (err) {
-        res.status(400).send('Bad Request');
+        next(new Error('UNAUTHORIZED'));
     }
 }
 

@@ -12,8 +12,7 @@ router.post('/login', async (req, res, next) => {
     try {
         let user = await UserController.validateUserPassword(req.body.email, req.body.password);
         if (!user) {
-            res.status(401).send('Unauthorised User');
-            return;
+            throw new Error('UNAUTHORIZED');
         }
         let token = jwt.signJWT({ id: user.id });
 
@@ -25,16 +24,15 @@ router.post('/login', async (req, res, next) => {
 
 router.post('/signup', async (req, res, next) => {
     try {
-        let user = await UserController.createUser(req.body.email, req.body.password, req.body.name);
-        if(req.body.password.length<6){
-            res.status(400).send('Bad data');
-            return;
+        if (!req.body.password || req.body.password.length < 6) {
+            throw new Error('BAD REQUEST');
         }
+        let user = await UserController.createUser(req.body.email, req.body.password, req.body.name);
         let token = jwt.signJWT({ id: user.id });
 
         res.json({ token });
     } catch (err) {
-        next(res.status(400).send('Bad data'));
+        next(err);
     }
 });
 module.exports = router;

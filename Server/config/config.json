@@ -8,7 +8,7 @@
     "port": 3306,
     "operatorsAliases": false,
     "define": {
-        "timestamps": false
+      "timestamps": false
     }
   },
   "test": {
@@ -20,8 +20,11 @@
     "port": 3306,
     "operatorsAliases": false,
     "define": {
-        "timestamps": false
+      "timestamps": false
     },
-    "logging": false
+    "logging": false,
+    "dialectOptions": {
+      "multipleStatements": true
+    }
   }
 }

@@ -27,18 +27,23 @@ db.authenticate()
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  res.status(404).send('Not Found');
+  next(new Error('NOT FOUND'));
 });
 
 // error handler
 app.use(function (err, req, res, next) {
-  // set locals, only providing error in development
-  console.log(err);
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
-
-  // render the error page
-  res.status(500).send(err.message);
+  console.error(err.message); // Log error message in our server's console
+  
+  if (err.message == 'BAD REQUEST' || err.message.indexOf('Validation error') > -1) {
+      err.statusCode = 400;
+  } else if (err.message == 'UNAUTHORIZED') {
+    err.statusCode = 401;
+  } else if (err.message == 'NOT FOUND') {
+    err.statusCode = 404;
+  } else {
+    err.statusCode = 500;
+  }
+  res.status(err.statusCode).send(err.message); // All HTTP requests must have a response, so let's send back an error with its status code and message
 });
 
 app.listen(port, () => {
